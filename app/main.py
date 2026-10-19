@@ -24,6 +24,7 @@ from . import db as db_layer
 from . import rednote
 from .agent import AgentTurn, run_agent
 from . import design_library
+from . import image_edit
 from .rednote import WorkspaceContext, WorkspaceError
 
 service.client_factory=default_client
@@ -285,6 +286,44 @@ def export_markdown(draft, handoff, compliance):
               "- 待确认信息：" + ("；".join(handoff["risks_and_gaps"]["blocking"]) or "无"),
               "", "> 本结果为规则/模型辅助生成，不代表法律合规保证，发布前请人工复核。"]
     return "\n".join(lines)
+
+
+@app.post("/api/v1/images/generate")
+async def generate_images(payload: image_edit.GenerateRequest):
+    """一键生图：用提示词 + 产品原图做图生图。"""
+    if not image_edit.configured():
+        return JSONResponse(status_code=503, content={"code": "CAPABILITY_DISABLED",
+                                                      "message": "图像编辑通道未配置 LLM_API_KEY"})
+    session = service.sessions.get(payload.session_id) if payload.session_id else None
+    handoff = session.handoff_cache if session else None
+    if not handoff or not handoff.get("images"):
+        return JSONResponse(status_code=422, content={"code": "EVIDENCE_REQUIRED",
+                                                      "message": "需要先有产品原图：请先完成选品与核验，或指定 image_id"})
+    images = handoff["images"]
+    image = next((row for row in images if row.get("image_id") == payload.image_id), images[0])
+    token = (image.get("access_url") or "").rstrip("/").split("/")[-1]
+    stored = get_asset(token)
+    if not stored:
+        return JSONResponse(status_code=409, content={"code": "SOURCE_UNAVAILABLE",
+                                                      "message": "产品图片临时地址已过期，请刷新材料后重试"})
+    body, mime = stored
+    slots = session.slots.model_dump(mode="json") if session else {}
+    facts = [str(fact.get("text", "")).partition("：")[0] for fact in handoff.get("facts", [])[:3]]
+    prompt = payload.prompt or image_edit.build_prompt(
+        scene=slots.get("scenario", ""), audience=slots.get("audience", ""),
+        objective=slots.get("objective", ""), title=slots.get("instructions", "")[:40],
+        facts=facts, style=payload.style, extra=payload.extra)
+    try:
+        results = await asyncio.to_thread(image_edit.edit_image, body, prompt, mime,
+                                          payload.size, payload.n, payload.model)
+    except image_edit.ImageEditError as error:
+        return JSONResponse(status_code=error.status, content={"code": "IMAGE_EDIT_FAILED",
+                                                               "message": error.message})
+    from .retrieval import store_asset
+    urls = [store_asset(content, "image/png") for content in results]
+    return {"status": "ok", "prompt": prompt, "model": payload.model or image_edit.DEFAULT_EDIT_MODEL,
+            "images": urls,
+            "note": "生成图只作氛围背景，不是产品实拍；产品外观以原图为准，发布前需人工核对。"}
 
 
 @app.post("/api/v1/covers/generate")

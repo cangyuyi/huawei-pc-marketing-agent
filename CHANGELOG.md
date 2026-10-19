@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.11.0 — 2026-10-19
+
+### Added
+
+- **一键生图（图生图）**: `POST /api/v1/images/generate` takes the current session's product photo plus a prompt and calls DashScope 通义万相图像编辑 (`wanx2.1-imageedit`, async task API) to produce atmosphere images. The product photo is sent as a base64 data URL, so no public hosting is needed; the prompt keeps product appearance locked and forbids text/watermark/price.
+- **Style presets**: clean desk / campus / commute / home / tech / festival; the draft card has a 一键生图 button and a style selector, and results are shown inline.
+- **Agent tool**: `generate_image` joins the tool registry, so the model can generate images from the chat.
+
+
 ## 0.10.0 — 2026-10-19
 
 ### Added
