@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.3 — 2026-10-19
+
+### Added
+
+- `HOT_SOURCE=curated` mode: the public deployment returns curated product angles without calling public social feeds, because the hosting gateway can reject social hot-list responses with a content-security error. The UI keeps labelling them as editorial, never as real-time Xiaohongshu data.
+
 ## 0.8.2 — 2026-10-19
 
 ### Added
