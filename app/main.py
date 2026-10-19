@@ -448,6 +448,18 @@ def rednote_manual_result(plan_id: str, payload: rednote.ManualResultIn, scope=D
     return rednote.manual_result(session, ctx, plan_id, payload)
 
 
+@app.get("/api/v1/workspaces/{workspace_id}/apps/rednote/publish-plans")
+def rednote_publish_plans(scope=Depends(rednote_scope)):
+    ctx, session = scope
+    return rednote.list_publish_plans(session, ctx)
+
+
+@app.get("/api/v1/workspaces/{workspace_id}/apps/rednote/retrospectives")
+def rednote_retrospectives(scope=Depends(rednote_scope)):
+    ctx, session = scope
+    return rednote.list_retrospectives(session, ctx)
+
+
 @app.get("/api/v1/workspaces/{workspace_id}/apps/rednote/analytics/overview")
 def rednote_overview(scope=Depends(rednote_scope)):
     ctx, session = scope

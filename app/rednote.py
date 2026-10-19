@@ -549,3 +549,28 @@ def list_comments(db: Session, ctx: WorkspaceContext) -> dict:
 
 def list_alerts(db: Session, ctx: WorkspaceContext) -> dict:
     return {"alerts": [], "note": "M1 只建表与合同；规则引擎待 M3。"}
+
+
+def list_publish_plans(db: Session, ctx: WorkspaceContext) -> dict:
+    plans = db.scalars(select(models.PublishPlan).where(
+        models.PublishPlan.workspace_id == ctx.workspace_id).order_by(
+        models.PublishPlan.created_at.desc()).limit(50)).all()
+    notes = db.scalars(select(models.PublishedNote).where(
+        models.PublishedNote.workspace_id == ctx.workspace_id).order_by(
+        models.PublishedNote.reported_at.desc()).limit(50)).all()
+    return {
+        "plans": [{"id": row.id, "content_item_id": row.content_item_id, "revision_id": row.revision_id,
+                   "account_ref": row.account_ref, "mode": row.mode, "status": row.status,
+                   "scheduled_at": row.scheduled_at.isoformat() if row.scheduled_at else None,
+                   "created_at": row.created_at.isoformat()} for row in plans],
+        "notes": [{"id": row.id, "account_ref": row.account_ref, "url": row.url,
+                   "platform_note_id": row.platform_note_id, "publish_status": row.publish_status,
+                   "visibility_status": row.visibility_status,
+                   "reported_at": row.reported_at.isoformat()} for row in notes],
+        "note": "SUBMITTED/REPORTED_PUBLISHED 不等于已核对公开可见；visibility_status 独立记录。",
+    }
+
+
+def list_retrospectives(db: Session, ctx: WorkspaceContext) -> dict:
+    return {"retrospectives": [], "playbooks": [],
+            "note": "复盘与经验库在 M3 接入；M1 只提供合同，不生成推测结论。"}
