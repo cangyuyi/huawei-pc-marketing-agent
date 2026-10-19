@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.12.5 — 2026-10-19
+
+### Added
+
+- **Cookie-based Xiaohongshu login**: the internal MCP image now restores `/app/data/cookies.json` from the `XHS_COOKIES_JSON` secret at startup, so a session created by a normal local login survives restarts and works from the cloud instance (QR login on datacenter IPs is blocked by Xiaohongshu risk control).
+- **Connection guide** (`docs/15_小红书连接上线指南.md`): root cause, four options (cookie injection, local MCP + tunnel, residential proxy, public fallback) and step-by-step verification.
+- The login dialog now explains the risk-control case after 40 seconds and links to the guide.
+
+
 ## 0.12.3 — 2026-10-19
 
 ### Added
