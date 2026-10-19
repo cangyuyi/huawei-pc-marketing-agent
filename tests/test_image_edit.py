@@ -73,9 +73,13 @@ def test_generate_images_reports_expired_reference(monkeypatch):
 
 def test_generate_images_without_key_is_disabled(monkeypatch):
     monkeypatch.delenv('LLM_API_KEY', raising=False)
-    response = client.post('/api/v1/images/generate', json={})
+    monkeypatch.delenv('IMAGE_API_KEY', raising=False)
+    token = store_asset(PNG, 'image/png')
+    _session_with_image('img-session-nokey', token)
+    response = client.post('/api/v1/images/generate', json={'session_id': 'img-session-nokey'})
     assert response.status_code == 503
     assert response.json()['code'] == 'CAPABILITY_DISABLED'
+    service.sessions.pop('img-session-nokey', None)
 
 
 def test_scene_pipeline_composites_product_on_generated_background(monkeypatch):
@@ -92,3 +96,46 @@ def test_scene_pipeline_composites_product_on_generated_background(monkeypatch):
     assert outputs and outputs[0].startswith(b"\x89PNG")
     with Image.open(_io.BytesIO(outputs[0])) as image:
         assert image.size == (1080, 1440)
+
+
+def test_styles_endpoint_lists_rich_variable_styles():
+    data = client.get('/api/v1/images/styles').json()
+    ids = {style['id'] for style in data['styles']}
+    assert {'digital_handbook', 'clean_desk', 'light_comic'} <= ids
+    assert len(ids) >= 10
+    assert {source['id'] for source in data['sources']} == {'ai', 'kb'}
+
+
+def test_kb_source_returns_original_images_without_generation(monkeypatch):
+    monkeypatch.setenv('IMAGE_API_KEY', 'test-image-key')
+    token = store_asset(PNG, 'image/png')
+    _session_with_image('img-session-kb', token)
+    called = {'n': 0}
+    monkeypatch.setattr('app.image_channel.generate_from_product',
+                        lambda *a, **k: called.__setitem__('n', called['n'] + 1) or [PNG])
+    data = client.post('/api/v1/images/generate',
+                       json={'session_id': 'img-session-kb', 'source': 'kb'}).json()
+    assert data['source'] == 'kb' and data['model'] is None
+    assert data['images'] == [token]
+    assert called['n'] == 0
+    service.sessions.pop('img-session-kb', None)
+
+
+def test_ai_source_uses_dedicated_image_channel(monkeypatch):
+    monkeypatch.setenv('IMAGE_API_KEY', 'test-image-key')
+    token = store_asset(PNG, 'image/png')
+    _session_with_image('img-session-ai', token)
+    seen = {}
+
+    def fake_generate(product_bytes, prompt, mime='image/png', model=None, size='1024x1024', n=1):
+        seen['prompt'] = prompt
+        seen['model'] = model
+        return [PNG]
+
+    monkeypatch.setattr('app.image_channel.generate_from_product', fake_generate)
+    data = client.post('/api/v1/images/generate',
+                       json={'session_id': 'img-session-ai', 'source': 'ai', 'style': 'light_comic'}).json()
+    assert data['channel'] == 'image_api' and data['mode'] == 'img2img'
+    assert data['images'] and data['images'][0].startswith('/api/v1/assets/')
+    assert '轻漫画' in seen['prompt']
+    service.sessions.pop('img-session-ai', None)

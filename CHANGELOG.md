@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.12.0 — 2026-10-19
+
+### Added
+
+- **Dedicated image channel**: `IMAGE_API_BASE_URL` / `IMAGE_API_KEY` / `IMAGE_MODEL` (default `qwen-image-3.0-pro` on the user-provided compatible endpoint). Image-to-image is done by sending the product photo as an `image` data URL to `/images/generations`; verified to keep the product unchanged while replacing the scene.
+- **13 switchable visual styles**: 数码手账 / 清爽桌搭 / 轻漫画 / 杂志编辑 / 极简产品 / 未来科技 / 复古胶片 / 手绘说明 / 校园学习 / 居家生活 / 通勤办公 / 节日氛围 / 真实场景摄影. Prompts forbid any text/letters/numbers (including handwritten and gibberish) so real Chinese copy is overlaid later.
+- **知识库原图 option**: `source=kb` returns the verified official images without calling any image model; the draft card has a 配图来源 selector (AI 生图 / 知识库原图).
+- `GET /api/v1/images/styles` reports styles, channel status and sources; DashScope remains as fallback when the dedicated channel is not configured.
+
+
 ## 0.11.1 — 2026-10-19
 
 ### Changed
