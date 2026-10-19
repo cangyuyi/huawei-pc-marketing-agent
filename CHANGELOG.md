@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.12.3 — 2026-10-19
+
+### Added
+
+- **Output ratio control**: generation follows the reference product image ratio by default (`ratio=kb`); `3:4` (Xiaohongshu), `1:1`, `16:9`, `9:16`, `4:3` are selectable. The generator picks the closest supported generation size and then center-crops to the exact target ratio, so the final image matches the chosen ratio precisely.
+- Knowledge-base images are mixed ratio (near-square 817x892, landscape 1048x588/860x684, etc.), so following the reference keeps the generated image consistent with the official asset used in the post.
+
+
 ## 0.12.0 — 2026-10-19
 
 ### Added

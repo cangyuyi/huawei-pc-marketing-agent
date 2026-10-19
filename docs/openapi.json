@@ -2938,6 +2938,11 @@
             "type": "string",
             "title": "Source",
             "default": "ai"
+          },
+          "ratio": {
+            "type": "string",
+            "title": "Ratio",
+            "default": "kb"
           }
         },
         "additionalProperties": false,

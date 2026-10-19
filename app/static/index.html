@@ -195,6 +195,12 @@
           <div class="draft-actions">
             <button id="copy-draft" class="btn-secondary">复制正文</button>
             <button id="generate-images" class="btn-primary">一键生图</button>
+            <select id="image-ratio" class="model-select" aria-label="输出比例">
+              <option value="kb">比例：跟随知识库原图</option>
+              <option value="3:4">比例：3:4（小红书）</option>
+              <option value="1:1">比例：1:1</option>
+              <option value="16:9">比例：16:9</option>
+            </select>
             <select id="image-source" class="model-select" aria-label="配图来源">
               <option value="ai">AI 生图</option>
               <option value="kb">知识库原图</option>
