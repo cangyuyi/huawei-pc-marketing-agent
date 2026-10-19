@@ -6,7 +6,9 @@
 
 - **Rednote workspace module (M1)**: `/api/v1/workspaces/{id}/apps/rednote` with brief handoff, structured trend selection, six creative directions (>=3 mechanisms / >=3 visual families), up to three sample boards, native design documents, review/approval and the manual publish path.
 - **Postgres/Redis via compose**: `compose.yaml` now ships Postgres 16 and Redis 7 for local development; SQLite remains available for tests and demo.
-- **Workspace view**: a new “小红书工作区” entry in the left sidebar with brief / trend / ideas / samples / design / review / analytics sections.
+- **Data operations workspace**: the left-sidebar entry now holds only post-publish operations (publish records, analytics, comments, alerts, retrospectives); the creative pipeline stays in the chat and the work panel.
+- **Platform-first work panel**: platforms (小红书/公众号/朋友圈/海报) sit above the tabs, and each platform has its own tab set and generation/publish rules.
+- **Autonomous tool loop**: `POST /agent/turn` exposes the Rednote modules as tools; the model chooses tools in the chat and the tool trace is shown.
 - **Same-origin editor host**: `/studio` is reserved for the vue-fabric-editor build; until the bundle is built the page states that plainly and the JSON/PNG fallback is used.
 - **Apache-2.0 LICENSE**.
 

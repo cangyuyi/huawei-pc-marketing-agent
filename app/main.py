@@ -22,6 +22,7 @@ from .model import image_configured, generate_cover_image, ModelError, allowed_m
 from .posters import pages_for, zip_bytes
 from . import db as db_layer
 from . import rednote
+from .agent import AgentTurn, run_agent
 from .rednote import WorkspaceContext, WorkspaceError
 
 service.client_factory=default_client
@@ -446,6 +447,12 @@ def rednote_execute_publish(plan_id: str, scope=Depends(rednote_scope)):
 def rednote_manual_result(plan_id: str, payload: rednote.ManualResultIn, scope=Depends(rednote_scope)):
     ctx, session = scope
     return rednote.manual_result(session, ctx, plan_id, payload)
+
+
+@app.post("/api/v1/workspaces/{workspace_id}/apps/rednote/agent/turn")
+def rednote_agent_turn(payload: AgentTurn, scope=Depends(rednote_scope)):
+    ctx, session = scope
+    return run_agent(session, ctx, payload.message, payload.conversation_id, payload.model)
 
 
 @app.get("/api/v1/workspaces/{workspace_id}/apps/rednote/publish-plans")

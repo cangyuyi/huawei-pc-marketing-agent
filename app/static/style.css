@@ -410,3 +410,6 @@ h1,h2,h3,p{margin:0}
   .ws-body{grid-template-columns:1fr}
   .ws-nav{flex-direction:row;overflow-x:auto;border-right:none;border-bottom:1px solid var(--divider)}
 }
+
+.ws-row{display:flex;flex-direction:column;gap:2px;border-bottom:1px solid var(--divider);padding:8px 0}
+.ws-row:last-child{border-bottom:none}

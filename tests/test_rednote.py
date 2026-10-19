@@ -148,3 +148,46 @@ def test_cross_workspace_object_is_rejected():
         "content_item_id": "not-a-real-item", "main_topic": {}})
     assert response.status_code == 404
     assert response.json()["code"] == "WORKSPACE_ACCESS_DENIED"
+
+
+def test_agent_loop_executes_registered_tools(monkeypatch):
+    item_id = _create_item()
+    scripted = [
+        {"thought": "先建方向", "tool": "create_directions",
+         "args": {"content_item_id": item_id, "count": 6}, "reply": ""},
+        {"thought": "完成", "tool": None, "args": {}, "reply": "已生成 6 个创意方向，请选择最多 3 个。"},
+    ]
+
+    def fake_complete(system, payload, schema_hint=None, model=None):
+        return scripted.pop(0), {"provider": "stub"}
+
+    monkeypatch.setattr('app.agent.complete_json', fake_complete)
+    data = client.post(f"{PREFIX}/agent/turn", json={"message": "给我 6 个创意方向"}).json()
+    assert data["engine"] == "agent"
+    assert data["tool_trace"][0]["tool"] == "create_directions"
+    assert data["tool_trace"][0]["ok"] is True
+    assert "6" in data["reply"]
+
+
+def test_agent_loop_reports_unknown_tool_without_crashing(monkeypatch):
+    scripted = [
+        {"tool": "publish_everything", "args": {}},
+        {"tool": None, "args": {}, "reply": "该操作不存在。"},
+    ]
+    monkeypatch.setattr('app.agent.complete_json',
+                        lambda *a, **k: (scripted.pop(0), {}))
+    data = client.post(f"{PREFIX}/agent/turn", json={"message": "直接发布"}).json()
+    assert data["tool_trace"][0]["ok"] is False
+    assert "CAPABILITY_DISABLED" in data["tool_trace"][0]["summary"]
+
+
+def test_agent_reports_unavailable_model(monkeypatch):
+    from app.model import ModelError
+
+    def boom(*args, **kwargs):
+        raise ModelError("no key")
+
+    monkeypatch.setattr('app.agent.complete_json', boom)
+    data = client.post(f"{PREFIX}/agent/turn", json={"message": "开始"}).json()
+    assert data["engine"] == "agent-unavailable"
+    assert data["tool_trace"] == []
