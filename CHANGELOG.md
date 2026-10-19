@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.0 — 2026-10-19
+
+### Added
+
+- **Design library (M2 foundation)**: 16 visual families x (2 cover + 2 inner) = 64 self-authored layout recipes with structural archetypes, layout preview PNGs, `from-layout` document creation and deterministic design checks (canvas, fonts, text overflow, placeholder images).
+- **Same-origin editor**: the MIT vue-fabric-editor build is served at `/studio` (commercial upstream fonts removed, upstream LICENSE kept); `scripts/build_studio.sh` rebuilds it and `THIRD_PARTY_NOTICES.md` records the licence boundary.
+- **Design APIs/tools**: `/design-library/styles`, `/design-library/layouts`, `/design-library/layouts/{id}/preview.png`, `/design-documents/from-layout`, `/design-documents/{id}/checks`, and matching agent tools.
+
+
 ## 0.9.0 — 2026-10-19
 
 ### Added

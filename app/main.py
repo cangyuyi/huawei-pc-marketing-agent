@@ -19,10 +19,11 @@ from .conversation import Turn, service, DialogueError, ask
 from .hotspot import related_hot_terms, related_hot_topics
 from .xhs import XhsError, configured as xhs_configured, hot_topics as xhs_hot_topics, login_qrcode, login_status
 from .model import image_configured, generate_cover_image, ModelError, allowed_models
-from .posters import pages_for, zip_bytes
+from .posters import pages_for, render_page, zip_bytes
 from . import db as db_layer
 from . import rednote
 from .agent import AgentTurn, run_agent
+from . import design_library
 from .rednote import WorkspaceContext, WorkspaceError
 
 service.client_factory=default_client
@@ -404,6 +405,57 @@ def rednote_board(payload: rednote.BoardIn, scope=Depends(rednote_scope)):
 def rednote_board_preview(board_id: str, scope=Depends(rednote_scope)):
     ctx, session = scope
     return rednote.style_preview(session, ctx, board_id)
+
+
+@app.get("/api/v1/workspaces/{workspace_id}/apps/rednote/design-library/styles")
+def rednote_design_styles(scope=Depends(rednote_scope)):
+    return {"families": design_library.styles(), "fonts": design_library.FONTS,
+            "note": "16 个自研视觉家族，每家族 2 封面 + 2 内页；不包含第三方模板素材"}
+
+
+@app.get("/api/v1/workspaces/{workspace_id}/apps/rednote/design-library/layouts")
+def rednote_design_layouts(family_id: str = "", scope=Depends(rednote_scope)):
+    return {"layouts": design_library.layouts(family_id or None),
+            "count": len(design_library.layouts(family_id or None))}
+
+
+@app.get("/api/v1/workspaces/{workspace_id}/apps/rednote/design-library/layouts/{layout_id}/preview.png")
+def rednote_layout_preview(layout_id: str, scope=Depends(rednote_scope)):
+    recipe = design_library.get_recipe(layout_id)
+    if not recipe:
+        raise WorkspaceError("EVIDENCE_REQUIRED", "布局不存在：" + layout_id, 422)
+    role = "hook" if recipe.role == "cover" else "proof"
+    draft = {"pages": [{"role": role, "title": recipe.name,
+                        "text": f"{recipe.family_name}：布局 {layout_id}（{recipe.archetype}）",
+                        "fact_ids": [], "image_id": ""}]}
+    handoff = {"images": [], "facts": [], "product_identity": {"model_name": "HUAWEI MateBook"}}
+    content = render_page(draft, handoff, 0)
+    return Response(content, media_type="image/png",
+                    headers={"Cache-Control": "public, max-age=3600"})
+
+
+@app.post("/api/v1/workspaces/{workspace_id}/apps/rednote/design-documents/from-layout")
+def rednote_design_from_layout(payload: dict, scope=Depends(rednote_scope)):
+    ctx, session = scope
+    layout_id = str(payload.get("layout_id", ""))
+    content_item_id = str(payload.get("content_item_id", ""))
+    if not design_library.get_recipe(layout_id):
+        raise WorkspaceError("EVIDENCE_REQUIRED", "布局不存在：" + layout_id, 422)
+    built = design_library.build_document(layout_id, payload.get("bindings") or {},
+                                          str(payload.get("product_name", "")))
+    doc = rednote.create_design_document(session, ctx, rednote.DesignDocumentIn(
+        content_item_id=content_item_id, engine=built["engine"], engine_version=built["engine_version"],
+        native_payload=built["native_payload"], sidecar=built["sidecar"], manifest=built["manifest"]))
+    return {"document": doc, "layout_id": layout_id, "checks": design_library.check_document(doc)}
+
+
+@app.post("/api/v1/workspaces/{workspace_id}/apps/rednote/design-documents/{document_id}/checks")
+def rednote_design_checks(document_id: str, scope=Depends(rednote_scope)):
+    ctx, session = scope
+    from .models import DesignDocument
+    row = rednote._require(session, ctx, DesignDocument, document_id)
+    document = {"native_payload": row.native_payload, "sidecar": row.sidecar, "manifest": row.manifest}
+    return design_library.check_document(document)
 
 
 @app.post("/api/v1/workspaces/{workspace_id}/apps/rednote/design-documents")

@@ -39,6 +39,16 @@ TOOL_SPECS = [
          "sidecar": {"type": "object"}, "manifest": {"type": "object"},
          "document_id": {"type": "string"}, "expected_version": {"type": "integer"}},
          "required": ["content_item_id"]}},
+    {"name": "list_design_styles", "description": "列出 16 个视觉家族与每家族封面/内页布局 ID",
+     "parameters": {"type": "object", "properties": {}}},
+    {"name": "create_design_from_layout", "description": "用布局配方生成可编辑设计文档（Fabric payload + 语义绑定）",
+     "parameters": {"type": "object", "properties": {
+         "content_item_id": {"type": "string"}, "layout_id": {"type": "string"},
+         "bindings": {"type": "object"}, "product_name": {"type": "string"}},
+         "required": ["content_item_id", "layout_id"]}},
+    {"name": "check_design_document", "description": "对设计文档做尺寸/字体/文字越界/占位图检查",
+     "parameters": {"type": "object", "properties": {"document_id": {"type": "string"}},
+                    "required": ["document_id"]}},
     {"name": "submit_review", "description": "提交当前设计版本审核",
      "parameters": {"type": "object", "properties": {
          "content_item_id": {"type": "string"}, "design_document_id": {"type": "string"}},
@@ -123,6 +133,24 @@ def dispatch(db: Session, ctx: WorkspaceContext, name: str, args: dict) -> dict:
                                                sidecar=args.get("sidecar", {}),
                                                manifest=args.get("manifest", {}))
             return _clip(rednote.create_design_document(db, ctx, payload))
+        if name == "list_design_styles":
+            from . import design_library
+            return _clip({"families": design_library.styles(), "count": len(design_library.RECIPES)})
+        if name == "create_design_from_layout":
+            from . import design_library
+            built = design_library.build_document(args["layout_id"], args.get("bindings") or {},
+                                                  str(args.get("product_name", "")))
+            payload = rednote.DesignDocumentIn(content_item_id=args["content_item_id"],
+                                               engine=built["engine"], engine_version=built["engine_version"],
+                                               native_payload=built["native_payload"],
+                                               sidecar=built["sidecar"], manifest=built["manifest"])
+            return _clip(rednote.create_design_document(db, ctx, payload))
+        if name == "check_design_document":
+            from . import design_library
+            from .models import DesignDocument
+            row = rednote._require(db, ctx, DesignDocument, args["document_id"])
+            return _clip(design_library.check_document({"native_payload": row.native_payload,
+                                                        "sidecar": row.sidecar, "manifest": row.manifest}))
         if name == "submit_review":
             payload = rednote.ReviewSubmission(content_item_id=args["content_item_id"],
                                                design_document_id=args["design_document_id"])
