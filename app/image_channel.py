@@ -118,7 +118,8 @@ def build_prompt(style: str, subject: str = "", scene: str = "", audience: str =
         parts.append(f"补充要求：{extra}")
     parts.append("保持产品原有外观、颜色、Logo、接口、屏幕内容与比例完全不变，不新增或修改产品部件；"
                  "画面高级自然，构图留出文字空间；画面中不要出现任何文字、字母、数字、水印、价格或促销信息"
-                 "（包括手写体、标题、标签和乱码），所有文字位置留白，由后期排版叠加")
+                 "（包括手写体、标题、标签和乱码），所有文字位置留白，由后期排版叠加；"
+                 "不要生成软件界面、应用图标、第三方品牌标识或操作系统 Logo")
     return "。".join(part.strip() for part in parts if part).strip()[:1800]
 
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.12.2 — 2026-10-19
+
+### Changed
+
+- Image prompts also forbid software UIs, app icons, third-party brand marks and OS logos, so generated scenes stay brand-safe.
+
 ## 0.12.1 — 2026-10-19
 
 ### Changed
