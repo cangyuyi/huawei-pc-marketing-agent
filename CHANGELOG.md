@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.1 — 2026-10-19
+
+### Changed
+
+- One-click image generation now uses the hybrid pipeline (cutout composite / image edit) and accepts an optional custom prompt.
+
 ## 0.11.0 — 2026-10-19
 
 ### Added
