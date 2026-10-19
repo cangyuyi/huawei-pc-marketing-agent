@@ -1,6 +1,16 @@
 # Changelog
 
 ## 0.12.5 — 2026-10-19
+## 0.12.4 — 2026-10-19
+
+### Changed
+
+- Image-to-image is the default again so the product blends naturally into the scene and art style; the prompt keeps a reasonable guard (correct model/appearance/logo, no invented parts, no gibberish) instead of a rigid pixel-level demand. Short, correct Chinese titles are allowed.
+- Ratio selector in the UI is now two options: 原比例（跟随知识库原图）and 3:4（小红书）.
+- Pixel-identical product compositing remains available via `mode=composite` (or `IMAGE_PRESERVE_PRODUCT=composite`) for cases that need the exact original product pixels.
+
+
+## 0.12.2 — 2026-10-19
 
 ### Added
 
