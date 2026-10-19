@@ -43,6 +43,7 @@ def test_generate_images_uses_product_photo_and_prompt(monkeypatch):
         return [PNG]
 
     monkeypatch.setattr('app.image_edit.edit_image', fake_edit)
+    monkeypatch.setattr('app.image_edit.has_alpha', lambda data: False)
     response = client.post('/api/v1/images/generate',
                            json={'session_id': 'img-session-1', 'style': 'campus', 'n': 1})
     assert response.status_code == 200, response.text
@@ -75,3 +76,19 @@ def test_generate_images_without_key_is_disabled(monkeypatch):
     response = client.post('/api/v1/images/generate', json={})
     assert response.status_code == 503
     assert response.json()['code'] == 'CAPABILITY_DISABLED'
+
+
+def test_scene_pipeline_composites_product_on_generated_background(monkeypatch):
+    from PIL import Image
+    import io as _io
+
+    background = _io.BytesIO()
+    Image.new("RGB", (1024, 1024), (200, 210, 220)).save(background, format="PNG")
+    monkeypatch.setattr("app.model.generate_cover_image",
+                        lambda prompt: (background.getvalue(), "image/png"))
+    product = _io.BytesIO()
+    Image.new("RGBA", (400, 300), (255, 255, 255, 255)).save(product, format="PNG")
+    outputs = image_edit.generate_scene_image(product.getvalue(), "campus", "校园教室")
+    assert outputs and outputs[0].startswith(b"\x89PNG")
+    with Image.open(_io.BytesIO(outputs[0])) as image:
+        assert image.size == (1080, 1440)

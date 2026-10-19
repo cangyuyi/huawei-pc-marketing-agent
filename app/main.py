@@ -309,13 +309,20 @@ async def generate_images(payload: image_edit.GenerateRequest):
     body, mime = stored
     slots = session.slots.model_dump(mode="json") if session else {}
     facts = [str(fact.get("text", "")).partition("：")[0] for fact in handoff.get("facts", [])[:3]]
+    draft_title = (session.draft or {}).get("title", "") if session else ""
     prompt = payload.prompt or image_edit.build_prompt(
         scene=slots.get("scenario", ""), audience=slots.get("audience", ""),
-        objective=slots.get("objective", ""), title=slots.get("instructions", "")[:40],
+        objective=slots.get("objective", ""),
+        title=draft_title or (slots.get("instructions", "").split("\n")[0]),
         facts=facts, style=payload.style, extra=payload.extra)
     try:
-        results = await asyncio.to_thread(image_edit.edit_image, body, prompt, mime,
-                                          payload.size, payload.n, payload.model)
+        use_scene = payload.mode == "scene" or (payload.mode == "auto" and image_edit.has_alpha(body))
+        if use_scene:
+            results = await asyncio.to_thread(image_edit.generate_scene_image, body,
+                                              payload.style, payload.prompt or "")
+        else:
+            results = await asyncio.to_thread(image_edit.edit_image, body, prompt, mime,
+                                              payload.size, payload.n, payload.model)
     except image_edit.ImageEditError as error:
         return JSONResponse(status_code=error.status, content={"code": "IMAGE_EDIT_FAILED",
                                                                "message": error.message})
@@ -323,6 +330,7 @@ async def generate_images(payload: image_edit.GenerateRequest):
     urls = [store_asset(content, "image/png") for content in results]
     return {"status": "ok", "prompt": prompt, "model": payload.model or image_edit.DEFAULT_EDIT_MODEL,
             "images": urls,
+            "mode": "scene" if (payload.mode == "scene" or (payload.mode == "auto" and image_edit.has_alpha(body))) else "edit",
             "note": "生成图只作氛围背景，不是产品实拍；产品外观以原图为准，发布前需人工核对。"}
 
 

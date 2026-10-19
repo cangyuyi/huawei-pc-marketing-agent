@@ -1137,7 +1137,8 @@
       const response = await fetch('/api/v1/images/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: sessionId, style: $('image-style').value, n: 1 }),
+        body: JSON.stringify({ session_id: sessionId, style: $('image-style').value, n: 1,
+          prompt: ($('image-prompt').value || '').trim() || null }),
       });
       const data = await response.json();
       if (!response.ok) { toast(data.message || '生图失败'); return; }

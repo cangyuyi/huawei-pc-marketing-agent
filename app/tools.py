@@ -154,12 +154,18 @@ def dispatch(db: Session, ctx: WorkspaceContext, name: str, args: dict) -> dict:
                 return {"error": "SOURCE_UNAVAILABLE", "message": "产品图片临时地址已过期，请刷新材料"}
             slots = session.slots.model_dump(mode="json")
             facts = [str(fact.get("text", "")).partition("：")[0] for fact in handoff.get("facts", [])[:3]]
+            draft_title = (session.draft or {}).get("title", "")
             prompt = args.get("prompt") or image_edit.build_prompt(
                 scene=slots.get("scenario", ""), audience=slots.get("audience", ""),
-                objective=slots.get("objective", ""), title=slots.get("instructions", "")[:40],
+                objective=slots.get("objective", ""),
+                title=draft_title or slots.get("instructions", "").split("\n")[0],
                 facts=facts, style=args.get("style", "clean_desk"), extra=args.get("extra", ""))
-            results = image_edit.edit_image(stored[0], prompt, stored[1], None,
-                                            int(args.get("n", 1) or 1), None)
+            if image_edit.has_alpha(stored[0]):
+                results = image_edit.generate_scene_image(stored[0], args.get("style", "clean_desk"),
+                                                          args.get("prompt", ""))
+            else:
+                results = image_edit.edit_image(stored[0], prompt, stored[1], None,
+                                                int(args.get("n", 1) or 1), None)
             return _clip({"images": [store_asset(content, "image/png") for content in results],
                           "prompt": prompt, "note": "生成图只作氛围背景，不是产品实拍"})
         if name == "list_design_styles":
