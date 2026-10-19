@@ -112,6 +112,9 @@ docker run --rm -p 7860:7860 \
 | `LLM_IMAGE_MODEL` | 否 | 生图模型；DashScope 默认 `wanx2.1-t2i-turbo` |
 | `LLM_IMAGE_SIZE` | 否 | 生图尺寸，默认 `768*1024`（3:4） |
 | `LLM_IMAGE_NATIVE_BASE` | 否 | DashScope 原生 API 基址；Base URL 含 dashscope 时自动推导 |
+| `IMAGE_API_BASE_URL` | 否 | 独立图像通道（OpenAI 兼容）；默认 `https://maas.qianwenaiapi.com/compatible-mode/v1` |
+| `IMAGE_API_KEY` | 否 | 独立图像通道密钥；只在服务端配置，不下发前端 |
+| `IMAGE_MODEL` | 否 | 图像模型；默认 `qwen-image-3.0-pro` |
 | `DATABASE_URL` | 否 | 工作区持久化；Postgres 例：`postgresql+psycopg://rednote:rednote@127.0.0.1:5432/rednote`。未设置时工作区接口返回 `CAPABILITY_DISABLED`，对话链路不受影响 |
 | `REDIS_URL` | 否 | 队列/缓存预留；M1 未强制依赖 |
 | `REDNOTE_DATA_DIR` | 否 | 工作区资产目录，默认 `data` |
