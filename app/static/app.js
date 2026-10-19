@@ -742,9 +742,12 @@
 
   function switchView(view) {
     const hot = view === 'hot';
-    $('chat-view').hidden = hot;
+    const workspace = view === 'workspace';
+    $('chat-view').hidden = hot || workspace;
     $('hot-view').hidden = !hot;
+    $('workspace-view').hidden = !workspace;
     if (hot) loadHotList();
+    if (workspace && window.WorkspaceApp) window.WorkspaceApp.open();
   }
 
   async function loadHotList() {
@@ -998,6 +1001,7 @@
   });
 
   $('hot-search').addEventListener('click', () => switchView('hot'));
+  $('workspace-btn').addEventListener('click', () => switchView('workspace'));
   $('hot-back').addEventListener('click', () => switchView('chat'));
   $('hot-refresh').addEventListener('click', () => {
     hotTopics = [];
@@ -1107,6 +1111,8 @@
   }
   setWorkPanel(workPanelOpen);
   renderTasks();
+
+  window.AgentApp = { getSessionId: () => sessionId, getHotTopics: () => hotTopics, switchView };
 
   loadKnowledgeBase();
   loadXhsStatus();

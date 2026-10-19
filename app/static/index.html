@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>华为 PC 营销工作台 · Marketing Agent</title>
-<link rel="stylesheet" href="/static/style.css?v=0.8.3-1">
+<link rel="stylesheet" href="/static/style.css?v=0.9.0-1">
 </head>
 <body>
 <div class="app-shell">
@@ -23,7 +23,7 @@
       <span class="badge" id="kb-badge">知识库：检测中…</span>
       <button type="button" class="chip xhs-login" id="xhs-login">连接小红书</button>
       <button type="button" class="icon-btn" id="work-toggle" title="展开或收起工作栏" aria-label="展开或收起工作栏">▤</button>
-      <span class="version-tag">v0.8.3</span>
+      <span class="version-tag">v0.9.0</span>
     </div>
   </header>
 
@@ -40,6 +40,7 @@
       <div class="side-top">
         <button type="button" class="side-primary" id="new-task"><span class="side-ico">＋</span><span>新建任务</span><kbd>⌘N</kbd></button>
         <button type="button" class="side-item" id="hot-search"><span class="side-ico">⌕</span><span>热点搜索</span><kbd>⌘K</kbd></button>
+        <button type="button" class="side-item" id="workspace-btn"><span class="side-ico">▤</span><span>小红书工作区</span></button>
         <button type="button" class="side-item" id="automation-btn"><span class="side-ico">◎</span><span>自动化</span></button>
         <button type="button" class="side-item" id="plugins-btn"><span class="side-ico">▦</span><span>插件市场</span></button>
       </div>
@@ -120,6 +121,32 @@
               <p>点左侧热点查看详情，或直接“使用热点”带入对话框。</p>
             </div>
           </aside>
+        </div>
+      </section>
+
+      <section class="workspace-view" id="workspace-view" hidden aria-label="小红书工作区">
+        <div class="ws-head">
+          <div>
+            <h2>小红书数码运营工作区</h2>
+            <p class="hint" id="ws-status">M1：上游简报 → 选热点 → 创意方向 → 样张比较 → 设计文档 → 审核发布（人工）</p>
+          </div>
+          <div class="hot-actions">
+            <button type="button" class="btn-secondary" id="ws-brief">从当前对话生成简报</button>
+            <button type="button" class="btn-secondary" id="ws-back">返回对话</button>
+          </div>
+        </div>
+        <div class="ws-body">
+          <nav class="ws-nav" id="ws-nav">
+            <button type="button" data-ws="brief" class="active">简报与产品</button>
+            <button type="button" data-ws="trend">热点选择</button>
+            <button type="button" data-ws="ideas">创意方向</button>
+            <button type="button" data-ws="samples">样张比较</button>
+            <button type="button" data-ws="design">设计文档</button>
+            <button type="button" data-ws="review">审核与发布</button>
+            <button type="button" data-ws="analytics">运营监控</button>
+            <button type="button" data-ws="settings" disabled>系统设置（待接入）</button>
+          </nav>
+          <div class="ws-content" id="ws-content"></div>
         </div>
       </section>
 
@@ -271,6 +298,7 @@
   </div>
 </div>
 
-<script src="/static/app.js?v=0.8.3-1" defer></script>
+<script src="/static/app.js?v=0.9.0-1" defer></script>
+<script src="/static/workspace.js?v=0.9.0-1" defer></script>
 </body>
 </html>
